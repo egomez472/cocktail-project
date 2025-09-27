@@ -1,0 +1,147 @@
+<div class="card">
+  <div class="flex items-center justify-between mb-3" *ngIf="config.title">
+    <span class="text-xl font-bold">{{ config.title }}</span>
+  </div>
+
+  <p-table
+    [value]="config.data"
+    [tableStyle]="config.tableStyle"
+    [paginator]="config.paginator"
+    [rows]="config.rows"
+    [rowsPerPageOptions]="config.rowsPerPageOptions"
+    [selectionMode]="config.selectionMode === 'none' ? null : config.selectionMode"
+    [(selection)]="selection"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th
+          *ngFor="let col of config.columns"
+          [style.width]="col.width"
+          [ngClass]="{ 'text-right': col.align === 'right', 'text-center': col.align === 'center' }"
+          [hidden]="col.hidden"
+        >
+          {{ col.header }}
+        </th>
+        <th *ngIf="config.actions?.length"></th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-row>
+      <tr [ngClass]="config.rowStyleClass ? config.rowStyleClass(row) : null">
+        <td
+          *ngFor="let col of config.columns"
+          [hidden]="col.hidden"
+          [ngClass]="{ 'text-right': col.align === 'right', 'text-center': col.align === 'center' }"
+        >
+          <!-- custom template -->
+          <ng-container
+            *ngIf="col.type === 'custom' && col.template; else defaultCell"
+          >
+            <ng-container
+              [ngTemplateOutlet]="col.template"
+              [ngTemplateOutletContext]="{ $implicit: getValue(row, col.field), row: row, column: col }"
+            ></ng-container>
+          </ng-container>
+          <ng-template #defaultCell>
+            <!-- image -->
+            <ng-container *ngIf="col.type === 'image'; else textCell">
+              <img
+                [src]="getImageSrc(row, col)"
+                [alt]="getImageAlt(row, col)"
+                [ngClass]="{ 'rounded': col.image?.rounded }"
+                [style.width]="col.image?.width"
+                [style.height]="col.image?.height"
+              />
+            </ng-container>
+            <ng-template #textCell>
+              <!-- icon -->
+              <ng-container *ngIf="col.type === 'icon'; else badgeOrText">
+                <i
+                  [class]="getIconClass(col, row)"
+                  [pTooltip]="getIconTooltip(col, row)"
+                ></i>
+              </ng-container>
+              <ng-template #badgeOrText>
+                <!-- badge/tag -->
+                <ng-container *ngIf="col.type === 'badge'; else plainText">
+                  <button
+                    class="p-0 border-0 bg-transparent cursor-pointer"
+                    type="button"
+                    *ngIf="col.badge?.onClick; else nonClickableBadge"
+                    (click)="col.badge?.onClick?.(row)"
+                  >
+                    <p-tag
+                      [value]="getTagValue(col, row)"
+                      [severity]="getTagSeverity(col, row)"
+                    />
+                  </button>
+                  <ng-template #nonClickableBadge>
+                    <p-tag
+                      [value]="getTagValue(col, row)"
+                      [severity]="getTagSeverity(col, row)"
+                    />
+                  </ng-template>
+                </ng-container>
+                <ng-template #plainText>
+                  <ng-container [ngSwitch]="col.type">
+                    <span *ngSwitchCase="'currency'">
+                      {{ toNumber(getValue(row, col.field)) | number: '1.2-2'}}
+                    </span>
+                    <span *ngSwitchCase="'number'">
+                      {{ toNumber(getValue(row, col.field)) }}
+                    </span>
+                    <span *ngSwitchCase="'date'">
+                      {{ toDateValue(getValue(row, col.field)) | date }}
+                    </span>
+                    <span
+                      *ngSwitchCase="'text-click'"
+                      class="clickable"
+                      (click)="col?.onClick?.(row)"
+                    >
+                      {{ toDisplayString(getValue(row, col.field)) }}
+                    </span>
+                    <span *ngSwitchDefault>
+                      {{ col.format ? col.format(getValue(row, col.field), row)
+                      : toDisplayString(getValue(row, col.field)) }}
+                    </span>
+                  </ng-container>
+                </ng-template>
+              </ng-template>
+            </ng-template>
+          </ng-template>
+        </td>
+
+        <td class="text-right" *ngIf="config.actions?.length">
+          <div class="flex gap-2 justify-end">
+            <button
+              *ngFor="let action of config.actions; let i = index"
+              pButton
+              type="button"
+              [label]="action.label || ''"
+              [icon]="action.icon || ''"
+              [severity]="action.severity || 'primary'"
+              [disabled]="action.disabled ? action.disabled(row) : false"
+              (click)="onActionClick(i, row)"
+              [pTooltip]="action.tooltip || undefined"
+            ></button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="footer" *ngIf="config.showTotal">
+      <tr>
+        <td
+          [attr.colspan]="(config.columns.length || 0) + (config.actions?.length ? 1 : 0)"
+        >
+          <div class="flex items-center gap-6 flex-wrap">
+            <span> Total: <b>{{ config.data.length || 0 }}</b> </span>
+            <ng-container *ngFor="let t of config.otherTotal">
+              <span> {{ t.label }} <b>{{ t.value }}</b> </span>
+            </ng-container>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
