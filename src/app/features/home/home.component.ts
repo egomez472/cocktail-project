@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, effect, EffectRef, inject } from '@angular/core';
 import { DrinksTableConfigService } from '@app/features/home/configs/table-config';
 import { Drink } from '@core/services/drinks/interfaces/drink.interface';
-import { Header } from '@shared/components/header/header';
+import { HeaderComponent } from '@shared/components/header/header';
 import { TableConfig } from '@shared/components/table/config/table-config';
 import { TableComponent } from '@shared/components/table/table';
 import { ButtonModule } from 'primeng/button';
@@ -12,7 +12,7 @@ import { ButtonModule } from 'primeng/button';
   standalone: true,
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
-  imports: [CommonModule, TableComponent, ButtonModule, Header],
+  imports: [CommonModule, TableComponent, ButtonModule, HeaderComponent],
 })
 export class HomeComponent {
   private cfgSvc: DrinksTableConfigService = inject(DrinksTableConfigService);
