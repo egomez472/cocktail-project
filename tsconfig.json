@@ -3,6 +3,7 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "outDir": "./dist/out-tsc",
     "strict": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
@@ -10,25 +11,38 @@
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
     "isolatedModules": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "declaration": false,
     "experimentalDecorators": true,
+    "moduleResolution": "bundler",
     "importHelpers": true,
     "target": "ES2022",
-    "module": "preserve"
+    "module": "ES2022",
+    "lib": ["ES2022", "dom"],
+    "baseUrl": "src",
+    "paths": {
+      "@app/*": ["app/*"],
+
+      // Core services and base-request
+      "@core/*": ["app/core/*"],
+
+      // Features
+      "@features/*": ["app/features/*"],
+
+      // Shared
+      "@shared/*": ["app/shared/*"],
+
+      // App-level modules and configs
+      "@app.config": ["app/app.config"],
+      "@app.routes": ["app/app.routes"],
+      "@app.component": ["app/app"]
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
-    "typeCheckHostBindings": true,
     "strictTemplates": true
-  },
-  "files": [],
-  "references": [
-    {
-      "path": "./tsconfig.app.json"
-    },
-    {
-      "path": "./tsconfig.spec.json"
-    }
-  ]
+  }
 }

@@ -1,7 +1,9 @@
-<div class="card">
-  <div class="flex items-center justify-between mb-3" *ngIf="config.title">
+<p-card>
+  @if (config.title) {
+  <div class="flex items-center justify-between mb-3">
     <span class="text-xl font-bold">{{ config.title }}</span>
   </div>
+  }
 
   <p-table
     [value]="config.data"
@@ -14,134 +16,117 @@
   >
     <ng-template pTemplate="header">
       <tr>
+        @for (col of config.columns; track $index) {
         <th
-          *ngFor="let col of config.columns"
           [style.width]="col.width"
           [ngClass]="{ 'text-right': col.align === 'right', 'text-center': col.align === 'center' }"
           [hidden]="col.hidden"
         >
           {{ col.header }}
         </th>
-        <th *ngIf="config.actions?.length"></th>
+        } @if (config.actions?.length) {
+        <th></th>
+        }
       </tr>
     </ng-template>
 
     <ng-template pTemplate="body" let-row>
       <tr [ngClass]="config.rowStyleClass ? config.rowStyleClass(row) : null">
+        @for ( col of config.columns; track $index ) {
         <td
-          *ngFor="let col of config.columns"
           [hidden]="col.hidden"
           [ngClass]="{ 'text-right': col.align === 'right', 'text-center': col.align === 'center' }"
         >
-          <!-- custom template -->
+          @if (col.type === 'custom' && col.template) {
           <ng-container
-            *ngIf="col.type === 'custom' && col.template; else defaultCell"
+            [ngTemplateOutlet]="col.template"
+            [ngTemplateOutletContext]="{ $implicit: getValue(row, col.field), row: row, column: col }"
+          ></ng-container>
+          } @if (!(col.type === 'custom' && col.template)) { @switch (col.type)
+          { @case ('image') {
+          <img
+            [src]="getImageSrc(row, col)"
+            [alt]="getImageAlt(row, col)"
+            [ngClass]="{ 'rounded': col.image?.rounded }"
+            [style.width]="col.image?.width"
+            [style.height]="col.image?.height"
+          />
+          } @case ('icon') {
+          <i
+            [class]="getIconClass(col, row)"
+            [pTooltip]="getIconTooltip(col, row)"
+          ></i>
+          } @case ('badge') { @if (col.badge?.onClick) {
+          <button
+            class="p-0 border-0 bg-transparent cursor-pointer"
+            type="button"
+            (click)="col.badge?.onClick?.(row)"
           >
-            <ng-container
-              [ngTemplateOutlet]="col.template"
-              [ngTemplateOutletContext]="{ $implicit: getValue(row, col.field), row: row, column: col }"
-            ></ng-container>
-          </ng-container>
-          <ng-template #defaultCell>
-            <!-- image -->
-            <ng-container *ngIf="col.type === 'image'; else textCell">
-              <img
-                [src]="getImageSrc(row, col)"
-                [alt]="getImageAlt(row, col)"
-                [ngClass]="{ 'rounded': col.image?.rounded }"
-                [style.width]="col.image?.width"
-                [style.height]="col.image?.height"
-              />
-            </ng-container>
-            <ng-template #textCell>
-              <!-- icon -->
-              <ng-container *ngIf="col.type === 'icon'; else badgeOrText">
-                <i
-                  [class]="getIconClass(col, row)"
-                  [pTooltip]="getIconTooltip(col, row)"
-                ></i>
-              </ng-container>
-              <ng-template #badgeOrText>
-                <!-- badge/tag -->
-                <ng-container *ngIf="col.type === 'badge'; else plainText">
-                  <button
-                    class="p-0 border-0 bg-transparent cursor-pointer"
-                    type="button"
-                    *ngIf="col.badge?.onClick; else nonClickableBadge"
-                    (click)="col.badge?.onClick?.(row)"
-                  >
-                    <p-tag
-                      [value]="getTagValue(col, row)"
-                      [severity]="getTagSeverity(col, row)"
-                    />
-                  </button>
-                  <ng-template #nonClickableBadge>
-                    <p-tag
-                      [value]="getTagValue(col, row)"
-                      [severity]="getTagSeverity(col, row)"
-                    />
-                  </ng-template>
-                </ng-container>
-                <ng-template #plainText>
-                  <ng-container [ngSwitch]="col.type">
-                    <span *ngSwitchCase="'currency'">
-                      {{ toNumber(getValue(row, col.field)) | number: '1.2-2'}}
-                    </span>
-                    <span *ngSwitchCase="'number'">
-                      {{ toNumber(getValue(row, col.field)) }}
-                    </span>
-                    <span *ngSwitchCase="'date'">
-                      {{ toDateValue(getValue(row, col.field)) | date }}
-                    </span>
-                    <span
-                      *ngSwitchCase="'text-click'"
-                      class="clickable"
-                      (click)="col?.onClick?.(row)"
-                    >
-                      {{ toDisplayString(getValue(row, col.field)) }}
-                    </span>
-                    <span *ngSwitchDefault>
-                      {{ col.format ? col.format(getValue(row, col.field), row)
-                      : toDisplayString(getValue(row, col.field)) }}
-                    </span>
-                  </ng-container>
-                </ng-template>
-              </ng-template>
-            </ng-template>
-          </ng-template>
+            <p-tag
+              [value]="getTagValue(col, row)"
+              [severity]="getTagSeverity(col, row)"
+            />
+          </button>
+          } @else {
+          <p-tag
+            [value]="getTagValue(col, row)"
+            [severity]="getTagSeverity(col, row)"
+          />
+          } } @case ('currency') {
+          <span
+            >{{ toNumber(getValue(row, col.field)) | number: '1.2-2' }}</span
+          >
+          } @case ('number') {
+          <span>{{ toNumber(getValue(row, col.field)) }}</span>
+          } @case ('date') {
+          <span>{{ toDateValue(getValue(row, col.field)) | date }}</span>
+          } @case ('text-click') {
+          <span class="clickable" (click)="col?.onClick?.(row)">
+            {{ toDisplayString(getValue(row, col.field)) }}
+          </span>
+          } @default {
+          <span>
+            {{ col.format ? col.format(getValue(row, col.field), row) :
+            toDisplayString(getValue(row, col.field)) }}
+          </span>
+          } } }
         </td>
-
-        <td class="text-right" *ngIf="config.actions?.length">
+        } @if (config.actions?.length) {
+        <td class="text-right">
           <div class="flex gap-2 justify-end">
+            @for (action of config.actions; track $index) {
             <button
-              *ngFor="let action of config.actions; let i = index"
               pButton
               type="button"
               [label]="action.label || ''"
               [icon]="action.icon || ''"
               [severity]="action.severity || 'primary'"
               [disabled]="action.disabled ? action.disabled(row) : false"
-              (click)="onActionClick(i, row)"
+              (click)="onActionClick($index, row)"
               [pTooltip]="action.tooltip || undefined"
             ></button>
+            }
           </div>
         </td>
+        }
       </tr>
     </ng-template>
 
-    <ng-template pTemplate="footer" *ngIf="config.showTotal">
+    <ng-template pTemplate="footer">
+      @if (config.showTotal) {
       <tr>
         <td
           [attr.colspan]="(config.columns.length || 0) + (config.actions?.length ? 1 : 0)"
         >
           <div class="flex items-center gap-6 flex-wrap">
             <span> Total: <b>{{ config.data.length || 0 }}</b> </span>
-            <ng-container *ngFor="let t of config.otherTotal">
-              <span> {{ t.label }} <b>{{ t.value }}</b> </span>
-            </ng-container>
+            @for (t of config.otherTotal; track $index) {
+            <span> {{ t.label }} <b>{{ t.value }}</b> </span>
+            }
           </div>
         </td>
       </tr>
+      }
     </ng-template>
   </p-table>
-</div>
+</p-card>

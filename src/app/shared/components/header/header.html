@@ -1,11 +1,41 @@
-<header class="mb-3 flex justify-end">
-  <div class="flex gap-2">
-    <p-inputgroup>
-      <p-inputgroup-addon>
-        <i class="pi pi-search"></i>
-      </p-inputgroup-addon>
-      <input pInputText [(ngModel)]="text1" placeholder="Cocktail name..." />
-    </p-inputgroup>
-    <p-button [icon]="icon" (onClick)="toggleDarkMode()" severity="secondary" />
-  </div>
+<header class="mb-3">
+  <p-card class="mb-3 flex">
+    <div class="ml-x flex gap-2 justify-end">
+      <app-input-field
+        [config]="categorySelectConfig"
+        (selectedChange)="onCategoryChange($event)"
+        class="max-w-55 min-w-55"
+      >
+        <ng-template selectedItem let-selectedOption>
+          <div class="flex items-center gap-2">
+            <div>{{ selectedOption.strCategory }}</div>
+          </div>
+        </ng-template>
+        <ng-template item let-category>
+          <div class="flex items-center gap-2">
+            <div>{{ category.strCategory }}</div>
+          </div>
+        </ng-template>
+      </app-input-field>
+
+      <app-input-field [config]="searchInputConfig" class="max-w-55 min-w-55" />
+      <p-button
+        [icon]="icon"
+        (onClick)="toggleDarkMode()"
+        severity="secondary"
+      />
+    </div>
+  </p-card>
+  <p-card>
+    <div class="flex justify-around">
+      @for(abc of ALPHABET; track $index) {
+      <p-tag
+        class="cursor-pointer"
+        [severity]="selectedLetter() === abc ? 'contrast' : 'secondary'"
+        [value]="abc"
+        (click)="selectLetter(abc)"
+      />
+      }
+    </div>
+  </p-card>
 </header>

@@ -43,11 +43,3 @@ body {
 .p-component {
   font-family: var(--font-family);
 }
-
-.card {
-  background: var(--card-bg);
-  border: var(--card-border);
-  padding: 2rem;
-  border-radius: 10px;
-  margin-bottom: 1rem;
-}

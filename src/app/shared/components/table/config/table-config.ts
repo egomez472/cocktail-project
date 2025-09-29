@@ -80,8 +80,8 @@ export interface TableConfig<T = unknown> {
   rows?: number;
   rowsPerPageOptions?: number[];
   showTotal?: boolean;
-  otherTotal?: Array<{
+  otherTotal?: {
     label: string;
     value: number;
-  }>;
+  }[];
 }

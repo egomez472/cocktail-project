@@ -1,65 +1,60 @@
-/* eslint-env node */
-const tsParser = require('@typescript-eslint/parser');
-const tsPlugin = require('@typescript-eslint/eslint-plugin');
-const angularPlugin = require('@angular-eslint/eslint-plugin');
-const angularTemplate = require('@angular-eslint/eslint-plugin-template');
-const angularTemplateParser = require('@angular-eslint/template-parser');
-const configPrettier = require('eslint-config-prettier');
+// @ts-nocheck
+const eslint = require('@eslint/js');
+const tseslint = require('typescript-eslint');
+const angular = require('angular-eslint');
+const prettier = require('eslint-plugin-prettier');
 
-module.exports = [
-  // Ignorar salidas y deps
-  {
-    ignores: ['dist/**', 'node_modules/**']
-  },
-  // Reglas para TypeScript + Angular (incluye templates inline)
+const { extractRulesWithMeta } = require('./eslint-custom-rules/utils');
+const { rules: allRulesWithMetaData } = require('./eslint-custom-rules');
+const templateRules = require('./eslint-custom-rules/template');
+
+module.exports = tseslint.config(
   {
     files: ['**/*.ts'],
-    languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        // No usar "project" para evitar errores al resolver referencias TS
-        tsconfigRootDir: __dirname,
-        sourceType: 'module',
-        ecmaVersion: 2020
-      }
-    },
+    ignores: ['projects/**/*'],
+    extends: [
+      eslint.configs.recommended,
+      ...tseslint.configs.recommended,
+      ...tseslint.configs.stylistic,
+      ...angular.configs.tsRecommended,
+    ],
     plugins: {
-      '@typescript-eslint': tsPlugin,
-      '@angular-eslint': angularPlugin,
-      '@angular-eslint/template': angularTemplate
+      '@angular-eslint': angular.tsPlugin,
+      prettier: prettier,
     },
-    // Procesa templates inline en componentes (flat config)
-    processor: '@angular-eslint/template/extract-inline-html',
+    processor: angular.processInlineTemplates,
+    languageOptions: {
+      parserOptions: {
+        project: ['tsconfig.json'],
+        createDefaultProgram: true,
+      },
+    },
     rules: {
-      // Recomendadas
-      ...(tsPlugin.configs.recommended?.rules || {}),
-      ...(angularPlugin.configs.recommended?.rules || {}),
-
-      // Custom rules
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }
-      ],
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
-      eqeqeq: ['error', 'smart'],
-      'prefer-const': 'error',
-      curly: ['error', 'multi-line', 'consistent']
-    }
+      ...extractRulesWithMeta(allRulesWithMetaData),
+    },
   },
-  // Reglas para Templates HTML
   {
     files: ['**/*.html'],
-    languageOptions: {
-      parser: angularTemplateParser
-    },
+    extends: [
+      ...angular.configs.templateRecommended,
+      ...angular.configs.templateAccessibility,
+    ],
     plugins: {
-      '@angular-eslint/template': angularTemplate
+      '@angular-eslint': angular.tsPlugin,
+      prettier: prettier,
+      '@angular-eslint/template': require('@angular-eslint/eslint-plugin-template'),
     },
     rules: {
-      ...(angularTemplate.configs.recommended?.rules || {})
-    }
+      ...extractRulesWithMeta(templateRules),
+      '@angular-eslint/template/click-events-have-key-events': 'off',
+      '@angular-eslint/template/interactive-supports-focus': 'off',
+      '@angular-eslint/template/elements-content': 'off',
+    },
   },
-  // Desactiva reglas que chocan con Prettier
-  (configPrettier && typeof configPrettier === 'object') ? configPrettier : {}
-];
+  {
+    files: ['**/*.spec.ts'],
+    rules: {
+      'max-lines-per-function': 'off',
+    },
+  }
+);

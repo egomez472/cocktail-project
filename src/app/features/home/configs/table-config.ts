@@ -1,13 +1,13 @@
-import { Injectable, computed, inject } from '@angular/core';
-import { Drink } from '../../../core/interfaces/drink.interface';
-import { DrinkService } from '../../../core/services/drinks/drink.service';
-import { TableConfig } from '../../../shared/components/table/config/table-config';
+import { Injectable, Signal, computed, inject } from '@angular/core';
+import { DrinkService } from '@core/services/drinks/drink.service';
+import { Drink } from '@core/services/drinks/interfaces/drink.interface';
+import { TableConfig } from '@shared/components/table/config/table-config';
 
 @Injectable({ providedIn: 'root' })
 export class DrinksTableConfigService {
-  private readonly drinkSvc = inject(DrinkService);
+  private readonly drinkSvc: DrinkService = inject(DrinkService);
 
-  private readonly ingredientKeys = [
+  private readonly ingredientKeys: string[] = [
     'strIngredient1',
     'strIngredient2',
     'strIngredient3',
@@ -25,7 +25,7 @@ export class DrinksTableConfigService {
     'strIngredient15',
   ] as const;
 
-  private readonly measureKeys = [
+  private readonly measureKeys: string[] = [
     'strMeasure1',
     'strMeasure2',
     'strMeasure3',
@@ -44,13 +44,22 @@ export class DrinksTableConfigService {
   ] as const;
 
   private countIngredients(d: Drink): number {
-    return this.ingredientKeys.reduce((acc, key) => {
-      const v = d[key];
-      return acc + (v && v.trim() ? 1 : 0);
+    const dict: Record<string, unknown> = d as unknown as Record<
+      string,
+      unknown
+    >;
+    return this.ingredientKeys.reduce((acc: number, key: string) => {
+      const v: unknown = dict[key];
+      return acc + (typeof v === 'string' && v.trim() ? 1 : 0);
     }, 0);
   }
 
-  readonly config = computed<TableConfig<Drink>>(() => ({
+  private static readonly ROWS_PER_PAGE: number[] = [5, 10, 20];
+
+  public readonly config: Signal<TableConfig<Drink>> = computed<
+    TableConfig<Drink>
+    // eslint-disable-next-line max-lines-per-function
+  >(() => ({
     title: 'Cocktails',
     data: this.drinkSvc.drinks(),
     paginator: true,
@@ -70,7 +79,7 @@ export class DrinksTableConfigService {
         field: 'idDrink',
         type: 'text-click',
         width: '120px',
-        onClick: (row) => alert(`View ${row.idDrink}`),
+        onClick: (row: Drink) => alert(`View ${row.idDrink}`),
       },
       {
         header: 'Thumb',
@@ -93,7 +102,7 @@ export class DrinksTableConfigService {
         field: 'strCategory',
         type: 'badge',
         badge: {
-          value: (row) => row.strCategory ?? undefined,
+          value: (row: Drink) => row.strCategory ?? undefined,
           severity: () => 'info',
         },
       },
@@ -102,8 +111,8 @@ export class DrinksTableConfigService {
         field: 'strAlcoholic',
         type: 'badge',
         badge: {
-          value: (row) => row.strAlcoholic ?? undefined,
-          severity: (row) =>
+          value: (row: Drink) => row.strAlcoholic ?? undefined,
+          severity: (row: Drink) =>
             row.strAlcoholic === 'Alcoholic' ? 'danger' : 'success',
         },
       },
@@ -112,14 +121,24 @@ export class DrinksTableConfigService {
         type: 'badge',
         align: 'center',
         badge: {
-          value: (row) => String(this.countIngredients(row)),
+          value: (row: Drink) => String(this.countIngredients(row)),
           severity: () => 'secondary',
-          onClick: (row) => {
+          onClick: (row: Drink): void => {
             const lines: string[] = [];
-            for (let i = 0; i < this.ingredientKeys.length; i++) {
-              const ing = row[this.ingredientKeys[i]];
+            for (let i: number = 0; i < this.ingredientKeys.length; i++) {
+              const dict: Record<string, unknown> = row as unknown as Record<
+                string,
+                unknown
+              >;
+              const ing: string | undefined =
+                typeof dict[this.ingredientKeys[i]] === 'string'
+                  ? (dict[this.ingredientKeys[i]] as string)
+                  : undefined;
               if (ing && ing.trim()) {
-                const mea = row[this.measureKeys[i]];
+                const mea: string | undefined =
+                  typeof dict[this.measureKeys[i]] === 'string'
+                    ? (dict[this.measureKeys[i]] as string)
+                    : undefined;
                 lines.push(`${ing}${mea ? ' - ' + mea : ''}`);
               }
             }
@@ -143,7 +162,7 @@ export class DrinksTableConfigService {
       {
         icon: 'pi pi-eye',
         severity: 'secondary',
-        onClick: (row) => alert(`View ${row.strDrink}`),
+        onClick: (row: Drink) => alert(`View ${row.strDrink}`),
       },
     ],
   }));

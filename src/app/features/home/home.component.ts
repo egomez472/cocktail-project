@@ -1,12 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, effect, inject, OnInit } from '@angular/core';
+import { Component, effect, EffectRef, inject } from '@angular/core';
+import { DrinksTableConfigService } from '@app/features/home/configs/table-config';
+import { Drink } from '@core/services/drinks/interfaces/drink.interface';
+import { Header } from '@shared/components/header/header';
+import { TableConfig } from '@shared/components/table/config/table-config';
+import { TableComponent } from '@shared/components/table/table';
 import { ButtonModule } from 'primeng/button';
-import { Drink } from '../../core/interfaces/drink.interface';
-import { DrinkService } from '../../core/services/drinks/drink.service';
-import { Header } from '../../shared/components/header/header';
-import { TableConfig } from '../../shared/components/table/config/table-config';
-import { TableComponent } from '../../shared/components/table/table';
-import { DrinksTableConfigService } from './configs/table-config';
 
 @Component({
   selector: 'app-home',
@@ -15,19 +14,14 @@ import { DrinksTableConfigService } from './configs/table-config';
   styleUrl: './home.component.scss',
   imports: [CommonModule, TableComponent, ButtonModule, Header],
 })
-export class HomeComponent implements OnInit {
-  private drinkSvc: DrinkService = inject(DrinkService);
-  private cfgSvc = inject(DrinksTableConfigService);
+export class HomeComponent {
+  private cfgSvc: DrinksTableConfigService = inject(DrinksTableConfigService);
 
-  data: Drink[] = [];
-  config: TableConfig<Drink> = this.cfgSvc.config();
+  public data: Drink[] = [];
+  public config: TableConfig<Drink> = this.cfgSvc.config();
 
-  ngOnInit(): void {
-    this.drinkSvc.loadDrinks();
-  }
-
-  private readonly sync = effect(() => {
-    const c = this.cfgSvc.config();
+  private readonly sync: EffectRef = effect(() => {
+    const c: TableConfig<Drink> = this.cfgSvc.config();
     this.config = c;
     this.data = c.data;
   });

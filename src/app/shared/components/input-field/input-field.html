@@ -1,0 +1,28 @@
+<p-inputgroup class="w-full">
+  @if (config.icon) {
+  <p-inputgroup-addon>
+    <i [class]="config.icon"></i>
+  </p-inputgroup-addon>
+  } @if (config.type === 'text') {
+  <input
+    pInputText
+    [ngModel]="textCfg.model()"
+    (ngModelChange)="textCfg.model.set($event)"
+    [placeholder]="config.placeholder || ''"
+  />
+  } @else {
+  <p-select
+    [options]="selectCfg.options()"
+    [ngModel]="selectCfg.selected || null"
+    (ngModelChange)="onSelectChange($event)"
+    [placeholder]="config.placeholder || ''"
+    [filter]="true"
+    [showClear]="selectCfg.showClear ?? true"
+    [optionLabel]="selectCfg.optionLabel"
+    [filterBy]="selectCfg.optionFilterBy"
+    class="w-full"
+  >
+    <ng-content></ng-content>
+  </p-select>
+  }
+</p-inputgroup>

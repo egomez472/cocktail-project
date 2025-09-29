@@ -1,4 +1,4 @@
-import { Drink } from '../../../interfaces/drink.interface';
+import { Drink } from '@core/services/drinks/interfaces/drink.interface';
 
 export interface DrinkState {
   drinks: Drink[];
