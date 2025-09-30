@@ -3,6 +3,7 @@ const eslint = require('@eslint/js');
 const tseslint = require('typescript-eslint');
 const angular = require('angular-eslint');
 const prettier = require('eslint-plugin-prettier');
+const eslintPluginPrettierRecommended = require('eslint-plugin-prettier/recommended');
 
 const { extractRulesWithMeta } = require('./eslint-custom-rules/utils');
 const { rules: allRulesWithMetaData } = require('./eslint-custom-rules');
@@ -17,6 +18,7 @@ module.exports = tseslint.config(
       ...tseslint.configs.recommended,
       ...tseslint.configs.stylistic,
       ...angular.configs.tsRecommended,
+      eslintPluginPrettierRecommended,
     ],
     plugins: {
       '@angular-eslint': angular.tsPlugin,

@@ -28,13 +28,13 @@
   </p-card>
   <p-card>
     <div class="flex justify-around">
-      @for(abc of ALPHABET; track $index) {
-      <p-tag
-        class="cursor-pointer"
-        [severity]="selectedLetter() === abc ? 'contrast' : 'secondary'"
-        [value]="abc"
-        (click)="selectLetter(abc)"
-      />
+      @for (abc of ALPHABET; track $index) {
+        <p-tag
+          class="cursor-pointer"
+          [severity]="selectedLetter() === abc ? 'contrast' : 'secondary'"
+          [value]="abc"
+          (click)="selectLetter(abc)"
+        />
       }
     </div>
   </p-card>

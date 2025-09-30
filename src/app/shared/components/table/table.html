@@ -1,8 +1,8 @@
 <p-card>
   @if (config.title) {
-  <div class="flex items-center justify-between mb-3">
-    <span class="text-xl font-bold">{{ config.title }}</span>
-  </div>
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-xl font-bold">{{ config.title }}</span>
+    </div>
   }
 
   <p-table
@@ -11,121 +11,161 @@
     [paginator]="config.paginator"
     [rows]="config.rows"
     [rowsPerPageOptions]="config.rowsPerPageOptions"
-    [selectionMode]="config.selectionMode === 'none' ? null : config.selectionMode"
+    [selectionMode]="
+      config.selectionMode === 'none' ? null : config.selectionMode
+    "
     [(selection)]="selection"
   >
     <ng-template pTemplate="header">
       <tr>
         @for (col of config.columns; track $index) {
-        <th
-          [style.width]="col.width"
-          [ngClass]="{ 'text-right': col.align === 'right', 'text-center': col.align === 'center' }"
-          [hidden]="col.hidden"
-        >
-          {{ col.header }}
-        </th>
-        } @if (config.actions?.length) {
-        <th></th>
+          <th
+            [style.width]="col.width"
+            [ngClass]="{
+              'text-right': col.align === 'right',
+              'text-center': col.align === 'center',
+            }"
+            [hidden]="col.hidden"
+          >
+            {{ col.header }}
+          </th>
+        }
+        @if (config.actions?.length) {
+          <th></th>
         }
       </tr>
     </ng-template>
 
     <ng-template pTemplate="body" let-row>
       <tr [ngClass]="config.rowStyleClass ? config.rowStyleClass(row) : null">
-        @for ( col of config.columns; track $index ) {
-        <td
-          [hidden]="col.hidden"
-          [ngClass]="{ 'text-right': col.align === 'right', 'text-center': col.align === 'center' }"
-        >
-          @if (col.type === 'custom' && col.template) {
-          <ng-container
-            [ngTemplateOutlet]="col.template"
-            [ngTemplateOutletContext]="{ $implicit: getValue(row, col.field), row: row, column: col }"
-          ></ng-container>
-          } @if (!(col.type === 'custom' && col.template)) { @switch (col.type)
-          { @case ('image') {
-          <img
-            [src]="getImageSrc(row, col)"
-            [alt]="getImageAlt(row, col)"
-            [ngClass]="{ 'rounded': col.image?.rounded }"
-            [style.width]="col.image?.width"
-            [style.height]="col.image?.height"
-          />
-          } @case ('icon') {
-          <i
-            [class]="getIconClass(col, row)"
-            [pTooltip]="getIconTooltip(col, row)"
-          ></i>
-          } @case ('badge') { @if (col.badge?.onClick) {
-          <button
-            class="p-0 border-0 bg-transparent cursor-pointer"
-            type="button"
-            (click)="col.badge?.onClick?.(row)"
+        @for (col of config.columns; track $index) {
+          <td
+            [hidden]="col.hidden"
+            [ngClass]="{
+              'text-right': col.align === 'right',
+              'text-center': col.align === 'center',
+            }"
           >
-            <p-tag
-              [value]="getTagValue(col, row)"
-              [severity]="getTagSeverity(col, row)"
-            />
-          </button>
-          } @else {
-          <p-tag
-            [value]="getTagValue(col, row)"
-            [severity]="getTagSeverity(col, row)"
-          />
-          } } @case ('currency') {
-          <span
-            >{{ toNumber(getValue(row, col.field)) | number: '1.2-2' }}</span
-          >
-          } @case ('number') {
-          <span>{{ toNumber(getValue(row, col.field)) }}</span>
-          } @case ('date') {
-          <span>{{ toDateValue(getValue(row, col.field)) | date }}</span>
-          } @case ('text-click') {
-          <span class="clickable" (click)="col?.onClick?.(row)">
-            {{ toDisplayString(getValue(row, col.field)) }}
-          </span>
-          } @default {
-          <span>
-            {{ col.format ? col.format(getValue(row, col.field), row) :
-            toDisplayString(getValue(row, col.field)) }}
-          </span>
-          } } }
-        </td>
-        } @if (config.actions?.length) {
-        <td class="text-right">
-          <div class="flex gap-2 justify-end">
-            @for (action of config.actions; track $index) {
-            <button
-              pButton
-              type="button"
-              [label]="action.label || ''"
-              [icon]="action.icon || ''"
-              [severity]="action.severity || 'primary'"
-              [disabled]="action.disabled ? action.disabled(row) : false"
-              (click)="onActionClick($index, row)"
-              [pTooltip]="action.tooltip || undefined"
-            ></button>
+            @if (col.type === 'custom' && col.template) {
+              <ng-container
+                [ngTemplateOutlet]="col.template"
+                [ngTemplateOutletContext]="{
+                  $implicit: getValue(row, col.field),
+                  row: row,
+                  column: col,
+                }"
+              ></ng-container>
             }
-          </div>
-        </td>
+            @if (!(col.type === 'custom' && col.template)) {
+              @switch (col.type) {
+                @case ('image') {
+                  <img
+                    [src]="getImageSrc(row, col)"
+                    [alt]="getImageAlt(row, col)"
+                    [ngClass]="{ rounded: col.image?.rounded }"
+                    [style.width]="col.image?.width"
+                    [style.height]="col.image?.height"
+                  />
+                }
+                @case ('icon') {
+                  <i
+                    [class]="getIconClass(col, row)"
+                    [pTooltip]="getIconTooltip(col, row)"
+                  ></i>
+                }
+                @case ('badge') {
+                  @if (col.badge?.onClick) {
+                    <button
+                      class="p-0 border-0 bg-transparent cursor-pointer"
+                      type="button"
+                      (click)="col.badge?.onClick?.(row)"
+                    >
+                      <p-tag
+                        [value]="getTagValue(col, row)"
+                        [severity]="getTagSeverity(col, row)"
+                      />
+                    </button>
+                  } @else {
+                    <p-tag
+                      [value]="getTagValue(col, row)"
+                      [severity]="getTagSeverity(col, row)"
+                    />
+                  }
+                }
+                @case ('currency') {
+                  <span>
+                    {{ toNumber(getValue(row, col.field)) | number: '1.2-2' }}
+                  </span>
+                }
+                @case ('number') {
+                  <span>
+                    {{ toNumber(getValue(row, col.field)) }}
+                  </span>
+                }
+                @case ('date') {
+                  <span>
+                    {{ toDateValue(getValue(row, col.field)) | date }}
+                  </span>
+                }
+                @case ('text-click') {
+                  <span class="clickable" (click)="col?.onClick?.(row)">
+                    {{ toDisplayString(getValue(row, col.field)) }}
+                  </span>
+                }
+                @default {
+                  <span>
+                    {{
+                      col.format
+                        ? col.format(getValue(row, col.field), row)
+                        : toDisplayString(getValue(row, col.field))
+                    }}
+                  </span>
+                }
+              }
+            }
+          </td>
+        }
+        @if (config.actions?.length) {
+          <td class="text-right">
+            <div class="flex gap-2 justify-end">
+              @for (action of config.actions; track $index) {
+                <button
+                  pButton
+                  type="button"
+                  [label]="action.label || ''"
+                  [icon]="action.icon || ''"
+                  [severity]="action.severity || 'primary'"
+                  [disabled]="action.disabled ? action.disabled(row) : false"
+                  (click)="onActionClick($index, row)"
+                  [pTooltip]="action.tooltip || undefined"
+                ></button>
+              }
+            </div>
+          </td>
         }
       </tr>
     </ng-template>
 
     <ng-template pTemplate="footer">
       @if (config.showTotal) {
-      <tr>
-        <td
-          [attr.colspan]="(config.columns.length || 0) + (config.actions?.length ? 1 : 0)"
-        >
-          <div class="flex items-center gap-6 flex-wrap">
-            <span> Total: <b>{{ config.data.length || 0 }}</b> </span>
-            @for (t of config.otherTotal; track $index) {
-            <span> {{ t.label }} <b>{{ t.value }}</b> </span>
-            }
-          </div>
-        </td>
-      </tr>
+        <tr>
+          <td
+            [attr.colspan]="
+              (config.columns.length || 0) + (config.actions?.length ? 1 : 0)
+            "
+          >
+            <div class="flex items-center gap-6 flex-wrap">
+              <span>
+                Total: <b>{{ config.data.length || 0 }}</b>
+              </span>
+              @for (t of config.otherTotal; track $index) {
+                <span>
+                  {{ t.label }} <b>{{ t.value }}</b>
+                </span>
+              }
+            </div>
+          </td>
+        </tr>
       }
     </ng-template>
   </p-table>
