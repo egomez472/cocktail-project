@@ -28,7 +28,7 @@
   </p-card>
   <p-card>
     <div class="flex justify-around">
-      @for (abc of ALPHABET; track $index) {
+      @for (abc of letters; track $index) {
         <p-tag
           class="cursor-pointer"
           [severity]="selectedLetter() === abc ? 'contrast' : 'secondary'"

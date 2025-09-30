@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, effect, EffectRef, inject } from '@angular/core';
+import { HeaderComponent } from '@app/features/header/header.component';
 import { DrinksTableConfigService } from '@app/features/home/configs/table-config';
 import { Drink } from '@core/services/drinks/interfaces/drink.interface';
-import { HeaderComponent } from '@shared/components/header/header';
 import { TableConfig } from '@shared/components/table/config/table-config';
 import { TableComponent } from '@shared/components/table/table';
 import { ButtonModule } from 'primeng/button';

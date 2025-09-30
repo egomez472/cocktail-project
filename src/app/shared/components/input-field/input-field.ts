@@ -1,41 +1,15 @@
 import { CommonModule } from '@angular/common';
-import {
-  Component,
-  EventEmitter,
-  Input,
-  Output,
-  Signal,
-  WritableSignal,
-} from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import {
+  InputFieldSelectConfig,
+  InputFieldTextConfig,
+} from '@shared/components/input-field/interfaces/input-field.interface';
+import { InputFieldConfig } from '@shared/components/input-field/types/input-field.type';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { InputTextModule } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
-
-export type InputFieldType = 'text' | 'select';
-
-export interface InputFieldTextConfig {
-  type: 'text';
-  icon?: string;
-  placeholder?: string;
-  model: WritableSignal<string>;
-}
-
-export interface InputFieldSelectConfig<T = unknown> {
-  type: 'select';
-  icon?: string;
-  placeholder?: string;
-  options: Signal<T[]>;
-  optionLabel?: string;
-  optionFilterBy?: string;
-  showClear?: boolean;
-  selected?: T | null;
-}
-
-export type InputFieldConfig<T = unknown> =
-  | InputFieldTextConfig
-  | InputFieldSelectConfig<T>;
 
 @Component({
   selector: 'app-input-field',
