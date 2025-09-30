@@ -10,13 +10,16 @@ import {
   WritableSignal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { FiltersService } from '@app/core/services/filters/filters.service';
 import { CategoriesConfigService } from '@app/features/header/categories-config/categories-config';
+import { IngredientsConfigService } from '@app/features/header/ingredients-config/ingredients-config';
 import {
+  InputFieldMultiSelectConfig,
   InputFieldSelectConfig,
   InputFieldTextConfig,
 } from '@app/shared/components/input-field/interfaces/input-field.interface';
 import { Category } from '@core/services/categories/interfaces/categories.interface';
-import { DrinkService } from '@core/services/drinks/drink.service';
+import { DrinkStore } from '@core/store/drink.store';
 import { InputFieldComponent } from '@shared/components/input-field/input-field';
 import { ButtonModule } from 'primeng/button';
 import { Card } from 'primeng/card';
@@ -41,12 +44,16 @@ import { Tag } from 'primeng/tag';
   styleUrl: './header.component.scss',
 })
 export class HeaderComponent implements OnDestroy {
-  /**
+  /*
    * Services
    */
-  private drinkSvc: DrinkService = inject(DrinkService);
+  private readonly drinkStore: DrinkStore = inject(DrinkStore);
+  private readonly filtersSvc: FiltersService = inject(FiltersService);
+  private readonly ingredientsConfigSvc: IngredientsConfigService = inject(
+    IngredientsConfigService
+  );
 
-  /**
+  /*
    * Vars
    */
   public text: WritableSignal<string> = signal<string>('');
@@ -55,14 +62,14 @@ export class HeaderComponent implements OnDestroy {
     null
   );
 
-  /**
-   * Configs serives
+  /*
+   * Configs services
    */
   private categoryConfigSvc: CategoriesConfigService = inject(
     CategoriesConfigService
   );
 
-  /**
+  /*
    * Category config
    */
   public letters: string[] = CategoriesConfigService.ALPHABET;
@@ -84,17 +91,30 @@ export class HeaderComponent implements OnDestroy {
   public selectedCategory: WritableSignal<Category | null> =
     signal<Category | null>(null);
 
-  /**
+  /*
    * Config input text
    */
-  public searchInputConfig: InputFieldTextConfig = {
-    type: 'text',
-    icon: 'pi pi-search',
-    placeholder: 'Cocktail name...',
-    model: this.text,
-  };
+  public get searchInputConfig(): InputFieldTextConfig {
+    return {
+      type: 'text',
+      icon: 'pi pi-search',
+      placeholder: 'Cocktail name...',
+      model: this.text,
+      disabled: this.drinkStore.disableNameInput(),
+    };
+  }
 
-  /**
+  /*
+   * Config input multiselect
+   */
+  public get ingredientsMultiConfig(): InputFieldMultiSelectConfig<string> {
+    return {
+      ...this.ingredientsConfigSvc.ingredientsMultiBaseConfig,
+      selected: this.filtersSvc.filters().ingredients,
+    };
+  }
+
+  /*
    * Sincronización de signals
    */
   private readonly sync: EffectRef = effect(
@@ -102,27 +122,34 @@ export class HeaderComponent implements OnDestroy {
       const q: string = this.text().trim();
       const delay: number = 300;
       const id: ReturnType<typeof setTimeout> = setTimeout(() => {
-        this.drinkSvc.loadDrinks(q);
+        const letter: string | null = this.selectedLetter();
+        this.drinkStore.setFirstLetter(letter);
+        if (!letter && q) {
+          this.drinkStore.setName(q);
+        }
       }, delay);
       onCleanup(() => clearTimeout(id));
     }
   );
 
-  /**
+  /*
    * Methods
    */
   public onCategoryChange(category: Category | null): void {
     this.selectedCategory.set(category as Category);
-    /**
-     * @TODO aca se va a llamar al service con el filtro de categoria
-     */
+    this.filtersSvc.updateFilters({ category: category?.strCategory ?? null });
+  }
+
+  public onIngredientsChange(values: string[] | null): void {
+    this.filtersSvc.updateFilters({ ingredients: values ?? [] });
   }
 
   public selectLetter(letter: string): void {
-    this.selectedLetter.set(this.selectedLetter() === letter ? null : letter);
-    /**
-     * @TODO aca se va a llamar al service con el filtro de primer letra
-     */
+    const next: string | null =
+      this.selectedLetter() === letter ? null : letter;
+    this.selectedLetter.set(next);
+    this.drinkStore.setFirstLetter(next);
+    this.text.set('');
   }
 
   public toggleDarkMode(): void {
@@ -131,10 +158,11 @@ export class HeaderComponent implements OnDestroy {
     element?.classList.toggle('p-dark');
   }
 
-  /**
+  /*
    * Lifecycle end
    */
   ngOnDestroy(): void {
     this.categoryConfigSvc.destroySvc();
+    this.ingredientsConfigSvc.destroySvc();
   }
 }

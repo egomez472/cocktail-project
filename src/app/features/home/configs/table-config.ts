@@ -1,11 +1,11 @@
 import { Injectable, Signal, computed, inject } from '@angular/core';
-import { DrinkService } from '@core/services/drinks/drink.service';
 import { Drink } from '@core/services/drinks/interfaces/drink.interface';
+import { DrinkStore } from '@core/store/drink.store';
 import { TableConfig } from '@shared/components/table/config/table-config';
 
 @Injectable({ providedIn: 'root' })
 export class DrinksTableConfigService {
-  private readonly drinkSvc: DrinkService = inject(DrinkService);
+  private readonly drinkStore: DrinkStore = inject(DrinkStore);
 
   private readonly ingredientKeys: string[] = [
     'strIngredient1',
@@ -61,16 +61,16 @@ export class DrinksTableConfigService {
     // eslint-disable-next-line max-lines-per-function
   >(() => ({
     title: 'Cocktails',
-    data: this.drinkSvc.drinks(),
+    data: this.drinkStore.filteredDrinks(),
     paginator: true,
     rows: 5,
     rowsPerPageOptions: [5, 10, 20],
     showTotal: true,
     otherTotal: [
-      { label: 'Alcoholic drinks:', value: this.drinkSvc.totalAlcoholic() },
+      { label: 'Alcoholic drinks:', value: this.drinkStore.totalAlcoholic() },
       {
         label: 'Non alcoholic drinks:',
-        value: this.drinkSvc.totalNonAlcoholic(),
+        value: this.drinkStore.totalNonAlcoholic(),
       },
     ],
     columns: [

@@ -10,7 +10,23 @@
       [ngModel]="textCfg.model()"
       (ngModelChange)="textCfg.model.set($event)"
       [placeholder]="config.placeholder || ''"
+      [disabled]="config.disabled ?? false"
     />
+  } @else if (config.type === 'multi-select') {
+    <p-multiSelect
+      [options]="multiSelectCfg.options()"
+      [ngModel]="multiSelectCfg.selected || []"
+      (ngModelChange)="onMultiSelectChange($event)"
+      [placeholder]="config.placeholder || ''"
+      [filter]="true"
+      [showClear]="multiSelectCfg.showClear ?? true"
+      [optionLabel]="multiSelectCfg.optionLabel"
+      [filterBy]="multiSelectCfg.optionFilterBy"
+      class="w-full"
+      display="chip"
+    >
+      <ng-content></ng-content>
+    </p-multiSelect>
   } @else {
     <p-select
       [options]="selectCfg.options()"

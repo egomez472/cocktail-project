@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
+  InputFieldMultiSelectConfig,
   InputFieldSelectConfig,
   InputFieldTextConfig,
 } from '@shared/components/input-field/interfaces/input-field.interface';
@@ -9,6 +10,7 @@ import { InputFieldConfig } from '@shared/components/input-field/types/input-fie
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { InputTextModule } from 'primeng/inputtext';
+import { MultiSelect } from 'primeng/multiselect';
 import { Select } from 'primeng/select';
 
 @Component({
@@ -21,6 +23,7 @@ import { Select } from 'primeng/select';
     InputTextModule,
     FormsModule,
     Select,
+    MultiSelect,
   ],
   templateUrl: './input-field.html',
   styleUrl: './input-field.scss',
@@ -36,10 +39,18 @@ export class InputFieldComponent<T = unknown> {
     return this.config as InputFieldSelectConfig<T>;
   }
 
-  @Output() public selectedChange: EventEmitter<T | null> =
-    new EventEmitter<T | null>();
+  public get multiSelectCfg(): InputFieldMultiSelectConfig<T> {
+    return this.config as InputFieldMultiSelectConfig<T>;
+  }
+
+  @Output() public selectedChange: EventEmitter<T | null | T[]> =
+    new EventEmitter<T | null | T[]>();
 
   public onSelectChange(val: T | null): void {
     this.selectedChange.emit(val);
+  }
+
+  public onMultiSelectChange(val: T[] | null): void {
+    this.selectedChange.emit(val ?? []);
   }
 }

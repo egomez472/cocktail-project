@@ -3,7 +3,7 @@
     <div class="ml-x flex gap-2 justify-end">
       <app-input-field
         [config]="categorySelectConfig"
-        (selectedChange)="onCategoryChange($event)"
+        (selectedChange)="onCategoryChange($any($event))"
         class="max-w-55 min-w-55"
       >
         <ng-template selectedItem let-selectedOption>
@@ -19,6 +19,13 @@
       </app-input-field>
 
       <app-input-field [config]="searchInputConfig" class="max-w-55 min-w-55" />
+
+      <app-input-field
+        [config]="ingredientsMultiConfig"
+        (selectedChange)="onIngredientsChange($any($event))"
+        class="max-w-55 min-w-55"
+      />
+
       <p-button
         [icon]="icon"
         (onClick)="toggleDarkMode()"
