@@ -27,4 +27,38 @@ export class DrinkService {
       )
       .pipe(map((r: CocktailDbResponse) => r.drinks ?? []));
   }
+
+  public loadDrinksByCategory(category: string): Observable<Drink[]> {
+    return this.http
+      .get<CocktailDbResponse>(
+        `https://www.thecocktaildb.com/api/json/v1/1/filter.php?c=${encodeURIComponent(
+          category
+        )}`
+      )
+      .pipe(map((r: CocktailDbResponse) => r.drinks ?? []));
+  }
+
+  public loadDrinkById(id: string): Observable<Drink | null> {
+    return this.http
+      .get<CocktailDbResponse>(
+        `https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i=${id}`
+      )
+      .pipe(
+        map((r: CocktailDbResponse) =>
+          r.drinks && r.drinks.length ? r.drinks[0] : null
+        )
+      );
+  }
+
+  public loadRandomDrink(): Observable<Drink | null> {
+    return this.http
+      .get<CocktailDbResponse>(
+        'https://www.thecocktaildb.com/api/json/v1/1/random.php'
+      )
+      .pipe(
+        map((r: CocktailDbResponse) =>
+          r.drinks && r.drinks.length ? r.drinks[0] : null
+        )
+      );
+  }
 }

@@ -15,6 +15,7 @@ import {
   Filters,
   FiltersService,
 } from '@core/services/filters/filters.service';
+import { InstructionLang } from '@core/services/language/interfaces/language.interface';
 import { Subscription } from 'rxjs';
 
 export interface PaginationState {
@@ -207,6 +208,33 @@ export class DrinkStore implements OnDestroy {
 
   private resetPagination(): void {
     this.pagination.update((p: PaginationState) => ({ ...p, page: 1 }));
+  }
+
+  public ingredientsWithMeasures(
+    d: Drink
+  ): { ingredient: string; measure?: string }[] {
+    const out: { ingredient: string; measure?: string }[] = [];
+    for (let i: number = 1; i <= 15; i++) {
+      const ik: keyof Drink = `strIngredient${i}` as keyof Drink;
+      const mk: keyof Drink = `strMeasure${i}` as keyof Drink;
+      const ingRaw: string | null = d[ik] as unknown as string | null;
+      const meaRaw: string | null = d[mk] as unknown as string | null;
+      const ing: string = (ingRaw ?? '').trim();
+      const mea: string = (meaRaw ?? '').trim();
+      if (ing) out.push({ ingredient: ing, measure: mea || undefined });
+    }
+    return out;
+  }
+
+  public getInstructionByLanguage(d: Drink, code: InstructionLang): string {
+    const instructionsMap: Record<InstructionLang, string | null> = {
+      es: d.strInstructionsES,
+      de: d.strInstructionsDE,
+      fr: d.strInstructionsFR,
+      it: d.strInstructionsIT,
+      en: d.strInstructions,
+    };
+    return instructionsMap[code] || d.strInstructions || '';
   }
 
   ngOnDestroy(): void {

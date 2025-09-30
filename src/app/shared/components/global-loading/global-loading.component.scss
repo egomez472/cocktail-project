@@ -1,0 +1,11 @@
+.global-loading-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in oklab, var(--surface-950) 60%, transparent);
+  backdrop-filter: blur(2px);
+  z-index: 1100;
+  flex-direction: column;
+}

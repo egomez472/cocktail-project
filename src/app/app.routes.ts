@@ -8,4 +8,12 @@ export const routes: Routes = [
         (m: typeof import('@features/home/home.component')) => m.HomeComponent
       ),
   },
+  {
+    path: 'drinks/:id',
+    loadComponent: () =>
+      import('./features/drink-detail/drink-detail.component').then(
+        (m: typeof import('@features/drink-detail/drink-detail.component')) =>
+          m.DrinkDetailComponent
+      ),
+  },
 ];

@@ -24,6 +24,7 @@
       [filterBy]="multiSelectCfg.optionFilterBy"
       class="w-full"
       display="chip"
+      [disabled]="config.disabled ?? false"
     >
       <ng-content></ng-content>
     </p-multiSelect>
@@ -38,6 +39,7 @@
       [optionLabel]="selectCfg.optionLabel"
       [filterBy]="selectCfg.optionFilterBy"
       class="w-full"
+      [disabled]="config.disabled ?? false"
     >
       <ng-content></ng-content>
     </p-select>

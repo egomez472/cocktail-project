@@ -1,15 +1,19 @@
+import { CommonModule } from '@angular/common';
 import {
   Component,
+  computed,
   effect,
   EffectCleanupRegisterFn,
   EffectRef,
   inject,
+  input,
   OnDestroy,
   Signal,
   signal,
   WritableSignal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { NavigationEnd, Router } from '@angular/router';
 import { FiltersService } from '@app/core/services/filters/filters.service';
 import { CategoriesConfigService } from '@app/features/header/categories-config/categories-config';
 import { IngredientsConfigService } from '@app/features/header/ingredients-config/ingredients-config';
@@ -19,6 +23,9 @@ import {
   InputFieldTextConfig,
 } from '@app/shared/components/input-field/interfaces/input-field.interface';
 import { Category } from '@core/services/categories/interfaces/categories.interface';
+import { DrinkService } from '@core/services/drinks/drink.service';
+import { Drink } from '@core/services/drinks/interfaces/drink.interface';
+import { LoadingService } from '@core/services/loading/loading.service';
 import { DrinkStore } from '@core/store/drink.store';
 import { InputFieldComponent } from '@shared/components/input-field/input-field';
 import { ButtonModule } from 'primeng/button';
@@ -27,10 +34,12 @@ import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { InputTextModule } from 'primeng/inputtext';
 import { Tag } from 'primeng/tag';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-header',
   imports: [
+    CommonModule,
     ButtonModule,
     InputGroupModule,
     InputGroupAddonModule,
@@ -52,14 +61,35 @@ export class HeaderComponent implements OnDestroy {
   private readonly ingredientsConfigSvc: IngredientsConfigService = inject(
     IngredientsConfigService
   );
+  private readonly loadingSvc: LoadingService = inject(LoadingService);
+  private readonly router: Router = inject(Router);
+  private readonly drinkSvc: DrinkService = inject(DrinkService);
 
   /*
    * Vars
    */
-  public text: WritableSignal<string> = signal<string>('');
+  public text: WritableSignal<string> = signal<string>(
+    this.filtersSvc.filters().name ?? ''
+  );
   public icon: string = 'pi pi-sun';
   public selectedLetter: WritableSignal<string | null> = signal<string | null>(
-    null
+    this.filtersSvc.filters().firstLetter
+  );
+
+  public readonly isLoading: Signal<boolean> = computed(() =>
+    this.loadingSvc.isLoading()
+  );
+
+  public readonly isDetailRoute: WritableSignal<boolean> = signal<boolean>(
+    this.router.url.startsWith('/drinks/')
+  );
+
+  private readonly routeSub: Subscription = this.router.events.subscribe(
+    (e: unknown) => {
+      if (e instanceof NavigationEnd) {
+        this.isDetailRoute.set(e.urlAfterRedirects.startsWith('/drinks/'));
+      }
+    }
   );
 
   /*
@@ -86,6 +116,7 @@ export class HeaderComponent implements OnDestroy {
     return {
       ...this.categorySelectBaseConfig,
       selected: this.selectedCategory(),
+      disabled: this.isLoading(),
     };
   }
   public selectedCategory: WritableSignal<Category | null> =
@@ -100,7 +131,7 @@ export class HeaderComponent implements OnDestroy {
       icon: 'pi pi-search',
       placeholder: 'Cocktail name...',
       model: this.text,
-      disabled: this.drinkStore.disableNameInput(),
+      disabled: this.drinkStore.disableNameInput() || this.isLoading(),
     };
   }
 
@@ -111,6 +142,7 @@ export class HeaderComponent implements OnDestroy {
     return {
       ...this.ingredientsConfigSvc.ingredientsMultiBaseConfig,
       selected: this.filtersSvc.filters().ingredients,
+      disabled: this.isLoading(),
     };
   }
 
@@ -133,6 +165,14 @@ export class HeaderComponent implements OnDestroy {
   );
 
   /*
+   * Inputs configurables
+   */
+  public readonly showFilters: Signal<boolean> = input<boolean>(true);
+  public readonly showCategory: Signal<boolean> = input<boolean>(true);
+  public readonly showIngredients: Signal<boolean> = input<boolean>(true);
+  public readonly showSearch: Signal<boolean> = input<boolean>(true);
+
+  /*
    * Methods
    */
   public onCategoryChange(category: Category | null): void {
@@ -145,6 +185,7 @@ export class HeaderComponent implements OnDestroy {
   }
 
   public selectLetter(letter: string): void {
+    if (this.isLoading()) return;
     const next: string | null =
       this.selectedLetter() === letter ? null : letter;
     this.selectedLetter.set(next);
@@ -158,11 +199,25 @@ export class HeaderComponent implements OnDestroy {
     element?.classList.toggle('p-dark');
   }
 
+  public goToRandomDrink(): void {
+    if (this.isLoading()) return;
+    const s: Subscription = this.drinkSvc
+      .loadRandomDrink()
+      .subscribe((d: Drink | null) => {
+        const id: string | undefined = d?.idDrink;
+        if (id) {
+          void this.router.navigate(['/drinks', id]);
+        }
+        s.unsubscribe();
+      });
+  }
+
   /*
    * Lifecycle end
    */
   ngOnDestroy(): void {
     this.categoryConfigSvc.destroySvc();
     this.ingredientsConfigSvc.destroySvc();
+    this.routeSub.unsubscribe();
   }
 }

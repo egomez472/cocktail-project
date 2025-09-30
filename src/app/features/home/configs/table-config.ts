@@ -1,11 +1,51 @@
-import { Injectable, Signal, computed, inject } from '@angular/core';
+import {
+  computed,
+  inject,
+  Injectable,
+  Signal,
+  signal,
+  WritableSignal,
+} from '@angular/core';
+import { Router } from '@angular/router';
+import { DrinkService } from '@core/services/drinks/drink.service';
 import { Drink } from '@core/services/drinks/interfaces/drink.interface';
+import { LoadingService } from '@core/services/loading/loading.service';
 import { DrinkStore } from '@core/store/drink.store';
 import { TableConfig } from '@shared/components/table/config/table-config';
+import { finalize, Subscription } from 'rxjs';
+
+export interface IngredientItem {
+  name: string;
+  measure?: string;
+  imageUrl?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class DrinksTableConfigService {
   private readonly drinkStore: DrinkStore = inject(DrinkStore);
+  private readonly router: Router = inject(Router);
+  private readonly drinkSvc: DrinkService = inject(DrinkService);
+  private readonly loadingSvc: LoadingService = inject(LoadingService);
+
+  public readonly isCategoryModalOpen: WritableSignal<boolean> = signal(false);
+  public readonly categoryDrinks: WritableSignal<Drink[]> = signal<Drink[]>([]);
+  public readonly categoryTitle: WritableSignal<string> = signal('');
+
+  public readonly isIngredientsModalOpen: WritableSignal<boolean> =
+    signal(false);
+  public readonly ingredientsItems: WritableSignal<IngredientItem[]> = signal<
+    IngredientItem[]
+  >([]);
+  public readonly ingredientsTitle: WritableSignal<string> =
+    signal('Ingredients');
+
+  private buildIngredientImageUrl(
+    name: string | undefined
+  ): string | undefined {
+    const n: string = (name ?? '').trim();
+    if (!n) return undefined;
+    return `https://www.thecocktaildb.com/images/ingredients/${encodeURIComponent(n)}-Small.png`;
+  }
 
   private readonly ingredientKeys: string[] = [
     'strIngredient1',
@@ -56,6 +96,11 @@ export class DrinksTableConfigService {
 
   private static readonly ROWS_PER_PAGE: number[] = [5, 10, 20];
 
+  private async openWhenIdle(openFn: () => void): Promise<void> {
+    await this.loadingSvc.waitUntilIdle();
+    openFn();
+  }
+
   public readonly config: Signal<TableConfig<Drink>> = computed<
     TableConfig<Drink>
     // eslint-disable-next-line max-lines-per-function
@@ -65,6 +110,7 @@ export class DrinksTableConfigService {
     paginator: true,
     rows: 5,
     rowsPerPageOptions: [5, 10, 20],
+    loading: this.loadingSvc.isLoading(),
     showTotal: true,
     otherTotal: [
       { label: 'Alcoholic drinks:', value: this.drinkStore.totalAlcoholic() },
@@ -79,7 +125,7 @@ export class DrinksTableConfigService {
         field: 'idDrink',
         type: 'text-click',
         width: '120px',
-        onClick: (row: Drink) => alert(`View ${row.idDrink}`),
+        onClick: (row: Drink) => this.router.navigate(['drinks', row.idDrink]),
       },
       {
         header: 'Thumb',
@@ -104,6 +150,24 @@ export class DrinksTableConfigService {
         badge: {
           value: (row: Drink) => row.strCategory ?? undefined,
           severity: () => 'info',
+          onClick: (row: Drink): void => {
+            const category: string = row.strCategory || '';
+            this.categoryTitle.set(category);
+            const _sub: Subscription = this.drinkSvc
+              .loadDrinksByCategory(category)
+              .pipe(
+                finalize(
+                  () =>
+                    void this.openWhenIdle(() =>
+                      this.isCategoryModalOpen.set(true)
+                    )
+                )
+              )
+              .subscribe((list: Drink[]) => {
+                this.categoryDrinks.set(list || []);
+              });
+            void _sub;
+          },
         },
       },
       {
@@ -124,25 +188,18 @@ export class DrinksTableConfigService {
           value: (row: Drink) => String(this.countIngredients(row)),
           severity: () => 'secondary',
           onClick: (row: Drink): void => {
-            const lines: string[] = [];
-            for (let i: number = 0; i < this.ingredientKeys.length; i++) {
-              const dict: Record<string, unknown> = row as unknown as Record<
-                string,
-                unknown
-              >;
-              const ing: string | undefined =
-                typeof dict[this.ingredientKeys[i]] === 'string'
-                  ? (dict[this.ingredientKeys[i]] as string)
-                  : undefined;
-              if (ing && ing.trim()) {
-                const mea: string | undefined =
-                  typeof dict[this.measureKeys[i]] === 'string'
-                    ? (dict[this.measureKeys[i]] as string)
-                    : undefined;
-                lines.push(`${ing}${mea ? ' - ' + mea : ''}`);
-              }
-            }
-            alert(`${row.strDrink}:\n` + lines.join('\n'));
+            const items: IngredientItem[] = this.drinkStore
+              .ingredientsWithMeasures(row)
+              .map(
+                (x: { ingredient: string; measure?: string | undefined }) => ({
+                  name: x.ingredient,
+                  measure: x.measure,
+                  imageUrl: this.buildIngredientImageUrl(x.ingredient),
+                })
+              );
+            this.ingredientsItems.set(items);
+            this.ingredientsTitle.set(row.strDrink || 'Ingredients');
+            void this.openWhenIdle(() => this.isIngredientsModalOpen.set(true));
           },
         },
       },
@@ -162,7 +219,7 @@ export class DrinksTableConfigService {
       {
         icon: 'pi pi-eye',
         severity: 'secondary',
-        onClick: (row: Drink) => alert(`View ${row.strDrink}`),
+        onClick: (row: Drink) => this.router.navigate(['drinks', row.idDrink]),
       },
     ],
   }));

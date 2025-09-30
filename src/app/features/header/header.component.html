@@ -1,30 +1,44 @@
 <header class="mb-3">
   <p-card class="mb-3 flex">
-    <div class="ml-x flex gap-2 justify-end">
-      <app-input-field
-        [config]="categorySelectConfig"
-        (selectedChange)="onCategoryChange($any($event))"
-        class="max-w-55 min-w-55"
-      >
-        <ng-template selectedItem let-selectedOption>
-          <div class="flex items-center gap-2">
-            <div>{{ selectedOption.strCategory }}</div>
-          </div>
-        </ng-template>
-        <ng-template item let-category>
-          <div class="flex items-center gap-2">
-            <div>{{ category.strCategory }}</div>
-          </div>
-        </ng-template>
-      </app-input-field>
-
-      <app-input-field [config]="searchInputConfig" class="max-w-55 min-w-55" />
-
-      <app-input-field
-        [config]="ingredientsMultiConfig"
-        (selectedChange)="onIngredientsChange($any($event))"
-        class="max-w-55 min-w-55"
+    <div class="flex gap-2 justify-end w-full items-center">
+      <p-button
+        icon="pi pi-sync"
+        label="Random drink"
+        (onClick)="goToRandomDrink()"
+        [loading]="isLoading()"
+        severity="secondary"
+        class="mr-auto"
       />
+      @if (showFilters() && !isDetailRoute()) {
+        @if (showCategory()) {
+          <app-input-field
+            [config]="categorySelectConfig"
+            (selectedChange)="onCategoryChange($any($event))"
+          >
+            <ng-template selectedItem let-selectedOption>
+              <div class="flex items-center gap-2">
+                <div>{{ selectedOption.strCategory }}</div>
+              </div>
+            </ng-template>
+            <ng-template item let-category>
+              <div class="flex items-center gap-2">
+                <div>{{ category.strCategory }}</div>
+              </div>
+            </ng-template>
+          </app-input-field>
+        }
+
+        @if (showIngredients()) {
+          <app-input-field
+            [config]="ingredientsMultiConfig"
+            (selectedChange)="onIngredientsChange($any($event))"
+          />
+        }
+
+        @if (showSearch()) {
+          <app-input-field [config]="searchInputConfig" />
+        }
+      }
 
       <p-button
         [icon]="icon"
@@ -33,16 +47,23 @@
       />
     </div>
   </p-card>
-  <p-card>
-    <div class="flex justify-around">
-      @for (abc of letters; track $index) {
-        <p-tag
-          class="cursor-pointer"
-          [severity]="selectedLetter() === abc ? 'contrast' : 'secondary'"
-          [value]="abc"
-          (click)="selectLetter(abc)"
-        />
-      }
-    </div>
-  </p-card>
+  @if (!isDetailRoute()) {
+    <p-card>
+      <div class="flex justify-around">
+        @for (abc of letters; track $index) {
+          <span
+            class="inline-flex"
+            [ngClass]="{ 'opacity-50 pointer-events-none': isLoading() }"
+          >
+            <p-tag
+              class="cursor-pointer"
+              [severity]="selectedLetter() === abc ? 'contrast' : 'secondary'"
+              [value]="abc"
+              (click)="selectLetter(abc)"
+            />
+          </span>
+        }
+      </div>
+    </p-card>
+  }
 </header>

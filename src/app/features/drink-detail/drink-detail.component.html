@@ -1,0 +1,71 @@
+@if (drink; as d) {
+  <p-card class="mb-3">
+    <div class="flex gap-4 items-start">
+      <img
+        [src]="d.strDrinkThumb || ''"
+        [alt]="d.strDrink || ''"
+        class="rounded"
+        style="width: 160px; height: 160px"
+      />
+      <div class="flex-1">
+        <div class="flex w-full justify-between">
+          <h2 class="text-2xl font-bold mb-2">{{ d.strDrink }}</h2>
+          <div class="flex items-center gap-2 mb-2">
+            <app-input-field
+              [config]="languageSelectConfig"
+              (selectedChange)="onLanguageChange($any($event))"
+            >
+              <ng-template selectedItem let-selectedOption>
+                <div class="flex items-center gap-2">
+                  <span>{{ selectedOption.flag }}</span>
+                  <div>{{ selectedOption.label }}</div>
+                </div>
+              </ng-template>
+              <ng-template item let-option>
+                <div class="flex items-center gap-2">
+                  <span>{{ option.flag }}</span>
+                  <div>{{ option.label }}</div>
+                </div>
+              </ng-template>
+            </app-input-field>
+          </div>
+        </div>
+        <div class="flex gap-2 mb-2">
+          <p-tag [value]="d.strCategory || ''" severity="info"></p-tag>
+          <p-tag
+            [value]="d.strAlcoholic || ''"
+            [severity]="d.strAlcoholic === 'Alcoholic' ? 'danger' : 'success'"
+          ></p-tag>
+          <p-tag [value]="d.strGlass || ''" severity="secondary"></p-tag>
+        </div>
+
+        <h3 class="font-semibold mt-2">Preparación</h3>
+        <div class="space-y-2 mb-4">
+          <p class="mt-1 whitespace-pre-line">{{ instructions }}</p>
+        </div>
+
+        <h3 class="font-semibold">Ingredients</h3>
+        <ul class="list-disc pl-6">
+          @for (item of ingredients(d); track $index) {
+            <li>
+              {{ item.ingredient }}
+              @if (item.measure) {
+                - {{ item.measure }}
+              }
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+  </p-card>
+  <p-button
+    icon="pi pi-arrow-left"
+    label="Back"
+    severity="secondary"
+    (onClick)="goBack()"
+  />
+} @else {
+  <p-card>
+    <p>No se encontró el cóctel.</p>
+  </p-card>
+}

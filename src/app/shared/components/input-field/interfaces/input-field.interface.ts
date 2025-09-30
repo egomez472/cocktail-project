@@ -9,6 +9,7 @@ export interface InputFieldSelectConfig<T = unknown> {
   optionFilterBy?: string;
   showClear?: boolean;
   selected?: T | null;
+  disabled?: boolean;
 }
 
 export interface InputFieldMultiSelectConfig<T = unknown> {
@@ -20,6 +21,7 @@ export interface InputFieldMultiSelectConfig<T = unknown> {
   optionFilterBy?: string;
   showClear?: boolean;
   selected?: T[];
+  disabled?: boolean;
 }
 
 export interface InputFieldTextConfig {

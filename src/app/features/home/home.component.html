@@ -1,4 +1,23 @@
 <div class="w-full items-center mt-4">
-  <app-header />
   <app-table [config]="config" />
+
+  <app-modal
+    [visible]="cfgSvc.isCategoryModalOpen()"
+    (visibleChange)="onModalVisibleChange($event)"
+    [config]="{ header: cfgSvc.categoryTitle(), width: '70vw' }"
+  >
+    <app-category-slider
+      [drinks]="cfgSvc.categoryDrinks()"
+      [resetTrigger]="resetTrigger"
+      (selectCategory)="onSelectFromSlider($event)"
+    />
+  </app-modal>
+
+  <app-modal
+    [visible]="cfgSvc.isIngredientsModalOpen()"
+    (visibleChange)="cfgSvc.isIngredientsModalOpen.set($event)"
+    [config]="{ header: cfgSvc.ingredientsTitle(), width: '50vw' }"
+  >
+    <app-ingredients-modal-content [items]="cfgSvc.ingredientsItems()" />
+  </app-modal>
 </div>

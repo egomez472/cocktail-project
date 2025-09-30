@@ -1,0 +1,24 @@
+<div class="flex flex-col gap-6 p-4">
+  @for (it of items; track $index) {
+    <div class="col-12 md:col-6">
+      <div class="flex items-center gap-3">
+        @let img = it.imageUrl;
+        @if (img) {
+          <p-image
+            [src]="img"
+            [alt]="it.name"
+            imageClass="rounded"
+            [preview]="false"
+            [style]="{ width: '48px', height: '48px' }"
+          ></p-image>
+        }
+        <div class="flex-1">
+          <div class="font-semibold">{{ it.name }}</div>
+          @if (it.measure) {
+            <p-tag [value]="it.measure || ''" severity="secondary"></p-tag>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

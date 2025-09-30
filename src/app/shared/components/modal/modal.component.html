@@ -1,0 +1,14 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="emitVisible($event)"
+  [modal]="true"
+  [header]="config()?.header || ''"
+  [style.width]="config()?.width || '60vw'"
+  [closable]="config()?.closable ?? true"
+  [dismissableMask]="config()?.dismissableMask ?? true"
+  [contentStyle]="{ padding: '0.75rem' }"
+  (onHide)="emitVisible(false)"
+  (onShow)="emitVisible(true)"
+>
+  <ng-content></ng-content>
+</p-dialog>

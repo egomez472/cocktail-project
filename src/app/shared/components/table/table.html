@@ -79,6 +79,7 @@
                       class="p-0 border-0 bg-transparent cursor-pointer"
                       type="button"
                       (click)="col.badge?.onClick?.(row)"
+                      [disabled]="config.loading === true"
                     >
                       <p-tag
                         [value]="getTagValue(col, row)"

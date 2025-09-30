@@ -1,0 +1,26 @@
+<p-carousel
+  [value]="drinks()"
+  [numVisible]="3"
+  [numScroll]="3"
+  [circular]="true"
+  [autoplayInterval]="0"
+  [showIndicators]="true"
+  class="max-w-[700px]"
+  [page]="page"
+  (onPage)="onCarouselPage($event)"
+>
+  <ng-template pTemplate="item" let-item>
+    <div
+      class="p-3 text-center cursor-pointer max-w-[600px]"
+      (click)="selectCategory.emit(item)"
+    >
+      <img
+        [src]="item.strDrinkThumb || ''"
+        [alt]="item.strDrink || ''"
+        style="width: 160px; height: 160px"
+        class="rounded mb-2"
+      />
+      <div class="font-semibold">{{ item.strDrink }}</div>
+    </div>
+  </ng-template>
+</p-carousel>
